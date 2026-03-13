@@ -125,11 +125,5 @@ AI: Google Gemini API
 Dev: Python 3.10+, python-dotenv
 ```
 
-## 🔒 Environment Variables
-See `.env.example`
-
-## 📄 License
-MIT License - See [LICENSE](LICENSE) (add your own)
-
 ---
 **Built for** EdTech Innovation | **Ready for** Production Deployment
