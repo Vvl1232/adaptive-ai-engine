@@ -1,135 +1,185 @@
-# AI-Driven Adaptive Diagnostic Engine 🚀
+# AI-Driven Adaptive Diagnostic Engine
 
-## 📋 Project Overview
-A **smart adaptive testing platform** that dynamically adjusts question difficulty based on user performance. Uses **FastAPI** backend with **MongoDB Atlas** for scalable data storage and **Gemini AI** (optional) for personalized study plans.
+## Project Overview
 
-**Key Features:**
-- ✅ Adaptive question difficulty adjustment
-- ✅ RESTful API with FastAPI
-- ✅ MongoDB Atlas integration
-- ✅ AI-powered study plan generation
-- ✅ Production-ready structure
+This project implements a 1-dimensional adaptive testing prototype that dynamically adjusts question difficulty based on a student's performance.
 
-**Perfect for:** EdTech internships, AI/ML assessments, adaptive learning systems.
+The system starts at a baseline difficulty level and updates the next question difficulty depending on whether the student answers correctly or incorrectly.
 
-## 🏗️ System Architecture
+The backend is implemented using FastAPI, and MongoDB Atlas is used to store questions and user session data.
+
+An optional feature integrates Google Gemini API to generate a personalized study plan based on the student's weak topics.
+
+## System Architecture
+
 ```
-[Frontend] --> [FastAPI Backend] --> [MongoDB Atlas]
-                         |
-                [Gemini AI] (Study Plans)
+Client
+   │
+   ▼
+FastAPI Backend
+   │
+   ├── Adaptive Algorithm
+   │
+   ▼
+MongoDB Atlas
+   │
+   ▼
+Gemini API (optional study plan)
 ```
 
-**Components:**
-- **FastAPI**: High-performance API server with auto-generated OpenAPI docs
-- **MongoDB**: Questions & user sessions storage
-- **Adaptive Engine**: Difficulty-based question selection
-- **AI Planner**: Gemini-powered personalized study recommendations
+## Components
 
-## 🗄️ MongoDB Schema
+- **FastAPI** – REST API for the adaptive testing system
+- **MongoDB Atlas** – stores questions and user session data
+- **Adaptive Engine** – adjusts difficulty after each response
+- **AI Module (Optional)** – generates study plans using Gemini
 
-### `questions` Collection
+## MongoDB Schema
+
+### Questions Collection
+
+Each question contains difficulty metadata used by the adaptive algorithm.
+
+Example document:
+
 ```json
 {
-  "_id": ObjectId,
-  "question": "What is photosynthesis?",
-  "options": ["A", "B", "C", "D"],
-  "correct_answer": "B",
-  "difficulty": 0.7,
-  "topic": "Biology"
+  "question": "Solve: 3x + 5 = 20",
+  "options": ["3", "5", "7", "10"],
+  "correct_answer": "5",
+  "difficulty": 0.4,
+  "topic": "Algebra",
+  "tags": ["equation"]
 }
 ```
 
-### `user_sessions` Collection
+### User Sessions Collection
+
+Tracks the progress of a student during a test session.
+
 ```json
 {
-  "_id": ObjectId,
   "user_id": "user123",
   "current_difficulty": 0.5,
-  "session_history": [...],
-  "weak_topics": ["Algebra", "Geometry"]
+  "session_history": [],
+  "weak_topics": ["Algebra"]
 }
 ```
 
-## 🧠 Adaptive Algorithm Logic
-1. **Start**: `current_difficulty = 0.5`
-2. **Next Question**: Find lowest difficulty question `>= current_difficulty`
-3. **Answer Feedback**:
-   - ✅ **Correct**: `difficulty = min(difficulty + 0.1, 1.0)`
-   - ❌ **Incorrect**: `difficulty = max(difficulty - 0.1, 0.1)`
-4. **Repeat** until assessment complete
+## Adaptive Algorithm
 
-**Math**: Elo-inspired adjustment with bounds [0.1, 1.0]
+The system uses a simplified adaptive difficulty approach.
 
-## 🔌 API Endpoints
-
-| Method | Endpoint | Description | Request | Response |
-|--------|----------|-------------|---------|----------|
-| `GET` | `/` | Health check | - | `{"message": "Adaptive Testing Engine Running"}` |
-| `GET` | `/next-question` | Get next adaptive question | - | `{"_id": "...", "question": "...", "difficulty": 0.7}` |
-| `POST` | `/submit-answer` | Submit answer & update difficulty | `{"correct": true}` | `{"new_difficulty": 0.6}` |
-| `POST` | `/study-plan` | Generate AI study plan | `{"weak_topics": ["Algebra"]}` | `{"study_plan": ["Practice quadratics", ...]}` |
-
-**Interactive Docs**: Available at `/docs` after startup!
-
-## 🚀 Quick Setup
-
-1. **Clone & Install**
-```bash
-git clone <repo-url>
-cd ai-adaptive-diagnostic-engine
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate  # Windows
-pip install -r requirements.txt
+**Initial state**
+```
+difficulty = 0.5
 ```
 
-2. **Configure Environment**
-```bash
-cp .env.example .env
-# Edit .env with your MongoDB Atlas URI & DB name
+**Difficulty update rule**
+- correct answer  → difficulty + 0.1
+- incorrect answer → difficulty - 0.1
+
+The difficulty value is constrained within:
+```
+0.1 ≤ difficulty ≤ 1.0
 ```
 
-3. **Run Server**
-```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+The next question is selected from MongoDB using the closest difficulty greater than or equal to the current level.
+
+This approximates a simple Item Response Theory inspired adaptive mechanism.
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Health check |
+| GET | `/next-question` | Returns the next question based on difficulty |
+| POST | `/submit-answer` | Updates difficulty based on correctness |
+| POST | `/study-plan` | (Optional) Generates AI study plan |
+
+### Example
+
+**GET /next-question**
+```json
+{
+  "question": "What is 12²?",
+  "options": ["124","144","154","164"],
+  "difficulty": 0.5
+}
 ```
 
-4. **Test API**
-- Health: `http://localhost:8000`
-- Docs: `http://localhost:8000/docs`
-- Next Question: `http://localhost:8000/next-question`
+## Running the Project
 
-## 🤖 AI Development Log
+1. **Clone repository**
+   ```
+   git clone <repo-url>
+   cd adaptive-ai-engine
+   ```
 
-**Gemini Integration (Bonus Feature):**
-```
-POST /study-plan
-Input: ["Algebra", "Trigonometry"]
-Output: Personalized 7-day study roadmap
-- Day 1: Quadratic equations (3 videos + 10 problems)
-- Day 2: SOH-CAH-TOA fundamentals
-- Progress tracking via weak_topics array
-```
+2. **Create virtual environment**
+   ```
+   python -m venv .venv
+   ```
 
-**Future Enhancements:**
-- [ ] User authentication & persistent sessions
-- [ ] Question bank seeding script
-- [ ] Real-time multiplayer testing
-- [ ] Advanced ML difficulty prediction
+   **Activate:**
+   
+   *Windows*
+   ```
+   .venv\Scripts\activate
+   ```
 
-## 📊 Tech Stack
-```
-Backend: FastAPI + Uvicorn
-Database: MongoDB Atlas + PyMongo
-AI: Google Gemini API
-Dev: Python 3.10+, python-dotenv
-```
+3. **Install dependencies**
+   ```
+   pip install -r requirements.txt
+   ```
 
-## 🔒 Environment Variables
-See `.env.example`
+4. **Configure environment**
 
-## 📄 License
-MIT License - See [LICENSE](LICENSE) (add your own)
+   Create `.env` using `.env.example`.
+   
+   ```
+   MONGO_URI=your_mongodb_connection_string
+   DB_NAME=adaptive_test
+   GEMINI_API_KEY=optional_api_key
+   ```
 
----
-**Built for** EdTech Innovation | **Ready for** Production Deployment
+5. **Run server**
+   ```
+   uvicorn app.main:app --reload
+   ```
+
+6. **API documentation**
+   ```
+   http://127.0.0.1:8000/docs
+   ```
+
+## AI Development Log
+
+AI tools such as ChatGPT and Blackbox AI were used during development to assist with:
+
+- FastAPI project structure
+- MongoDB schema design
+- adaptive difficulty logic
+- debugging API integration
+
+One challenge encountered was configuring the Gemini API model compatibility with the Python SDK.
+
+## Possible Improvements
+
+Future improvements could include:
+
+- implementing full IRT ability estimation
+- adding authentication and persistent sessions
+- building a simple frontend interface
+- collecting analytics on student performance
+
+## Verdict
+
+Your original README was good but slightly too polished.
+
+This version:
+- sounds more human
+- still professional
+- aligns better with student project tone
+
+This is perfect for internship evaluation.
